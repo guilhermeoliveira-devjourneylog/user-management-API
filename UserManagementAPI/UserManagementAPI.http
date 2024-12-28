@@ -1,0 +1,51 @@
+@UserManagementAPI_HostAddress = http://localhost:5011
+@AuthorizationToken = Bearer Mq3FYZRzXCv//B1LoDyIqkgxmPMSmA01nH9YMY4ojUM=
+
+
+
+### Retrieve all users
+GET {{UserManagementAPI_HostAddress}}/api/users
+Accept: application/json
+Authorization: {{AuthorizationToken}}
+
+###
+
+### Retrieve a user by ID
+GET {{UserManagementAPI_HostAddress}}/api/users/1
+Accept: application/json
+Authorization: {{AuthorizationToken}}
+
+###
+
+### Create a new user
+POST {{UserManagementAPI_HostAddress}}/api/users
+Content-Type: application/json
+Authorization: {{AuthorizationToken}}
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "department": "IT"
+}
+
+###
+
+### Update an existing user
+PUT {{UserManagementAPI_HostAddress}}/api/users/1
+Content-Type: application/json
+Authorization: {{AuthorizationToken}}
+
+{
+  "id": 1,
+  "firstName": "John",
+  "lastName": "Smith",
+  "email": "john.smith@example.com",
+  "department": "Engineering"
+}
+
+###
+
+### Delete a user by ID
+DELETE {{UserManagementAPI_HostAddress}}/api/users/1
+Authorization: {{AuthorizationToken}}
