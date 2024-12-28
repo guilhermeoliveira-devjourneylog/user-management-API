@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementAPI.Models;
 using UserManagementAPI.Repositories;
@@ -6,6 +7,7 @@ namespace UserManagementAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly UserRepository _repository = new();
@@ -27,6 +29,7 @@ namespace UserManagementAPI.Controllers
         }
 
         // POST: api/users
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public ActionResult AddUser([FromBody] User user)
         {

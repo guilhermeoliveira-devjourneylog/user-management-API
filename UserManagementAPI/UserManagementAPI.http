@@ -1,7 +1,14 @@
 @UserManagementAPI_HostAddress = http://localhost:5011
-@AuthorizationToken = Bearer Mq3FYZRzXCv//B1LoDyIqkgxmPMSmA01nH9YMY4ojUM=
+@AuthorizationToken = Bearer 
 
+### Register a new user
+POST {{UserManagementAPI_HostAddress}}/api/auth/login
+Content-Type: application/json
 
+{
+  "username": "admin",
+  "password": "password"
+}
 
 ### Retrieve all users
 GET {{UserManagementAPI_HostAddress}}/api/users
