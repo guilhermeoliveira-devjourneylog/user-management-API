@@ -9,6 +9,14 @@ namespace UserManagementAPI.Models
 
         [Required]
         [MaxLength(50)]
+        public string Username { get; set; } 
+
+        [Required]
+        [MaxLength(100)]
+        public string Password { get; set; } 
+
+        [Required]
+        [MaxLength(50)]
         public string FirstName { get; set; }
 
         [Required]
@@ -23,12 +31,17 @@ namespace UserManagementAPI.Models
         [MaxLength(100)]
         public string Department { get; set; }
 
+        public string Role { get; set; } // Adicionada para validação do JWT
+
         public User()
         {
+            Username = string.Empty;
+            Password = string.Empty;
             FirstName = string.Empty;
             LastName = string.Empty;
             Email = string.Empty;
             Department = string.Empty;
+            Role = "User";
         }
     }
 }

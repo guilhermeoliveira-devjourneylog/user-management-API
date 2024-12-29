@@ -1,8 +1,11 @@
-@UserManagementAPI_HostAddress = http://localhost:5011
-@AuthorizationToken = Bearer 
+# @UserManagementAPI_HostAddress = http://localhost:5011
+@UserManagementAPI_HostAddress = https://localhost:7160
+# @AuthorizationToken = Bearer <Your_JWT_Token>
+@AuthorizationToken = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 
-### Register a new user
+### Register a new user (Login)
 POST {{UserManagementAPI_HostAddress}}/api/auth/login
+Authorization: {{AuthorizationToken}}
 Content-Type: application/json
 
 {
@@ -15,18 +18,20 @@ GET {{UserManagementAPI_HostAddress}}/api/users
 Accept: application/json
 Authorization: {{AuthorizationToken}}
 
-###
+### Test unauthorized access
+GET {{UserManagementAPI_HostAddress}}/api/users
+Accept: application/json
+Authorization: Bearer InvalidToken
 
 ### Retrieve a user by ID
 GET {{UserManagementAPI_HostAddress}}/api/users/1
 Accept: application/json
 Authorization: {{AuthorizationToken}}
 
-###
-
-### Create a new user
+### Create a new user (success)
 POST {{UserManagementAPI_HostAddress}}/api/users
 Content-Type: application/json
+Accept: application/json
 Authorization: {{AuthorizationToken}}
 
 {
@@ -36,11 +41,23 @@ Authorization: {{AuthorizationToken}}
   "department": "IT"
 }
 
-###
+### Create a new user (failure: invalid input)
+POST {{UserManagementAPI_HostAddress}}/api/users
+Content-Type: application/json
+Accept: application/json
+Authorization: {{AuthorizationToken}}
+
+{
+  "firstName": "",
+  "lastName": "Doe",
+  "email": "invalid-email",
+  "department": "IT"
+}
 
 ### Update an existing user
 PUT {{UserManagementAPI_HostAddress}}/api/users/1
 Content-Type: application/json
+Accept: application/json
 Authorization: {{AuthorizationToken}}
 
 {
@@ -51,8 +68,10 @@ Authorization: {{AuthorizationToken}}
   "department": "Engineering"
 }
 
-###
-
-### Delete a user by ID
+### Delete a user by ID (success)
 DELETE {{UserManagementAPI_HostAddress}}/api/users/1
+Authorization: {{AuthorizationToken}}
+
+### Delete a user by ID (failure: non-existent user)
+DELETE {{UserManagementAPI_HostAddress}}/api/users/999
 Authorization: {{AuthorizationToken}}

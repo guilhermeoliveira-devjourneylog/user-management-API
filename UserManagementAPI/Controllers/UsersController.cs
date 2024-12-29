@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserManagementAPI.Interfaces;
 using UserManagementAPI.Models;
-using UserManagementAPI.Repositories;
 
 namespace UserManagementAPI.Controllers
 {
@@ -10,7 +10,14 @@ namespace UserManagementAPI.Controllers
     [Authorize]
     public class UsersController : ControllerBase
     {
-        private readonly UserRepository _repository = new();
+        private readonly IUserRepository _repository;
+        private readonly ILogger<UsersController> _logger;
+
+        public UsersController(IUserRepository repository, ILogger<UsersController> logger)
+        {
+            _repository = repository;
+            _logger = logger;
+        }
 
         // GET: api/users
         [HttpGet]
@@ -23,9 +30,21 @@ namespace UserManagementAPI.Controllers
         [HttpGet("{id}")]
         public ActionResult<User> GetUser(int id)
         {
-            var user = _repository.GetUserById(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            try
+            {
+                var user = _repository.GetUserById(id);
+                if (user == null)
+                {
+                    return NotFound(new { Error = "User not found", UserId = id });
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user with ID {UserId}", id);
+                return StatusCode(500, new { Error = "An internal server error occurred." });
+            }
         }
 
         // POST: api/users

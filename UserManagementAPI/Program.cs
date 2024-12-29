@@ -1,16 +1,51 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using UserManagementAPI.Interfaces;
+using UserManagementAPI.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure JWT settings
+var jwtSettings = builder.Configuration.GetSection("JWT");
+var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? jwtSettings["SecretKey"];
+var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? jwtSettings["Issuer"];
+var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? jwtSettings["Audience"];
+
+if (string.IsNullOrWhiteSpace(secretKey))
+{
+    throw new InvalidOperationException("JWT_SECRET_KEY is not configured or is empty.");
+}
+
 // Add services to the container
-builder.Services.AddControllers(); // Add controller support
-builder.Services.AddEndpointsApiExplorer(); // Enable API exploration for Swagger
-builder.Services.AddSwaggerGen(); // Add Swagger support for API documentation
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "User Management API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer <token>'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -18,41 +53,33 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader());
 });
-builder.Services.AddResponseCompression(); // Enable response compression
-builder.Services.AddResponseCaching(); // Enable response caching
-
-// Configure secure cookies globally
+builder.Services.AddResponseCompression();
+builder.Services.AddResponseCaching();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always; // Prevent JavaScript access to cookies
-    options.Secure = CookieSecurePolicy.Always; // Cookies transmitted only over HTTPS
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+    options.Secure = CookieSecurePolicy.Always;
 });
 
-// Optional: Add health checks for monitoring
-builder.Services.AddHealthChecks();
-
-// Add authentication and authorization services
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+// Add Authentication and Authorization services
+builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
-        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY"); // Retrieve the secret key from environment variables
-        if (string.IsNullOrEmpty(secretKey))
-        {
-            throw new InvalidOperationException("JWT_SECRET_KEY is not configured in environment variables.");
-        }
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "your-issuer", // Use the environment variable or a default value
+            ValidIssuer = issuer,
             ValidateAudience = true,
-            ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "your-audience", // Use the environment variable or a default value
-            ValidateLifetime = true, // Validate token expiration
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)) // Use the secret key
+            ValidAudience = audience,
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
+builder.Services.AddAuthorization();
 
-builder.Services.AddAuthorization(); // Add policy-based authorization
+// Dependency Injection
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -63,28 +90,38 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); // Redirect HTTP requests to HTTPS
-app.UseCors("AllowAll"); // Apply CORS policy
-app.UseResponseCompression(); // Compress responses for better performance
-app.UseResponseCaching(); // Cache responses where applicable
-app.UseCookiePolicy(); // Secure cookies globally
-app.UseAuthentication(); // Ensure authentication happens early
-app.UseAuthorization(); // Ensure authorization happens after authentication
-
-// Custom middleware
-app.UseMiddleware<UserManagementAPI.Middleware.ErrorHandlingMiddleware>();
-app.UseMiddleware<UserManagementAPI.Middleware.AuthenticationMiddleware>();
-
-// Optional: Logging middleware (only in development for performance)
-if (app.Environment.IsDevelopment())
+// Middleware for error handling
+app.UseExceptionHandler(errorApp =>
 {
-    app.UseMiddleware<UserManagementAPI.Middleware.LoggingMiddleware>();
-}
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500; // Internal Server Error
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\": \"An internal server error occurred.\"}");
+    });
+});
 
-// Map controllers
+// Middleware for logging requests and responses
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"HTTP {context.Request.Method} - {context.Request.Path}");
+    await next();
+    Console.WriteLine($"Response Status Code: {context.Response.StatusCode}");
+});
+
+// Common middleware
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseResponseCompression();
+app.UseResponseCaching();
+app.UseCookiePolicy();
+
+// Authentication and Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Map controllers and health checks
 app.MapControllers();
-
-// Map health check endpoint
 app.MapHealthChecks("/health");
 
 app.Run();

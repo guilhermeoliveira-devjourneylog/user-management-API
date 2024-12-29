@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using UserManagementAPI.Helpers;
+using UserManagementAPI.Interfaces;
 
 namespace UserManagementAPI.Controllers
 {
@@ -8,38 +9,56 @@ namespace UserManagementAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly JwtTokenGenerator _tokenGenerator;
+        private readonly IUserRepository _repository;
 
-        public AuthController()
+        public AuthController(IConfiguration configuration, IUserRepository repository)
         {
-            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? throw new InvalidOperationException("JWT_SECRET_KEY not configured.");
-            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "your-issuer";
-            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "your-audience";
+            var jwtSection = configuration.GetSection("JWT");
+            var secretKey = jwtSection["SecretKey"];
+            var issuer = jwtSection["Issuer"];
+            var audience = jwtSection["Audience"];
+
+            if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+            {
+                throw new InvalidOperationException("JWT settings are not properly configured.");
+            }
 
             _tokenGenerator = new JwtTokenGenerator(secretKey, issuer, audience);
+            _repository = repository;
         }
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            // Simulate user validation (in a real-world scenario, check from a database)
-            if (request.Username == "admin" && request.Password == "password")
-            {
-                var token = _tokenGenerator.GenerateToken(
-                    userId: "1",
-                    userName: "admin",
-                    email: "admin@example.com",
-                    role: "Admin"
-                );
+            // Validar credenciais do usuário
+            var user = _repository.GetAllUsers().FirstOrDefault(u => 
+                u.Username == request.Username && u.Password == request.Password);
 
-                return Ok(new { Token = token });
+            if (user == null)
+            {
+                return Unauthorized(new { Message = "Invalid username or password." });
             }
 
-            return Unauthorized(new { Message = "Invalid username or password" });
+            // Gerar token JWT
+            var token = _tokenGenerator.GenerateToken(
+                userId: user.Id.ToString(),
+                userName: user.Username,
+                email: user.Email,
+                role: user.Role,
+                expiryInHours: 2
+            );
+
+            return Ok(new
+            {
+                Token = token,
+                ExpiresIn = 7200 // 2 horas em segundos
+            });
         }
     }
+
     public class LoginRequest
     {
-        public string? Username { get; set; }
-        public string? Password { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }

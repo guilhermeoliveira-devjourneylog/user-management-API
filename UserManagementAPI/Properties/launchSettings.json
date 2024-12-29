@@ -17,7 +17,7 @@
       "applicationUrl": "http://localhost:5011",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "JWT_SECRET_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "JWT_SECRET_KEY": "Hfdsiu3928FSklwjwe9283hFjsd83kL",
         "JWT_ISSUER": "your-issuer",
         "JWT_AUDIENCE": "your-audience"
       }
@@ -30,7 +30,7 @@
       "applicationUrl": "https://localhost:7160;http://localhost:5011",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "JWT_SECRET_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "JWT_SECRET_KEY": "Hfdsiu3928FSklwjwe9283hFjsd83kL",
         "JWT_ISSUER": "your-issuer",
         "JWT_AUDIENCE": "your-audience"
       }
@@ -41,7 +41,7 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "JWT_SECRET_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "JWT_SECRET_KEY": "Hfdsiu3928FSklwjwe9283hFjsd83kL",
         "JWT_ISSUER": "your-issuer",
         "JWT_AUDIENCE": "your-audience"
       }
