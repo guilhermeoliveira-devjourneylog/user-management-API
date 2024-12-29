@@ -1,7 +1,6 @@
-# @UserManagementAPI_HostAddress = http://localhost:5011
-@UserManagementAPI_HostAddress = https://localhost:7160
-# @AuthorizationToken = Bearer <Your_JWT_Token>
-@AuthorizationToken = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+@UserManagementAPI_HostAddress = http://localhost:5011
+# @UserManagementAPI_HostAddress = https://localhost:7160
+@AuthorizationToken = Bearer <Your_JWT_Token>
 
 ### Register a new user (Login)
 POST {{UserManagementAPI_HostAddress}}/api/auth/login
